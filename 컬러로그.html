@@ -1,0 +1,291 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>컬러로그</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 한 손 조작용 단일 컬럼 앱. 상단 제목, 가운데 카드 목록, 하단 탭바. 색은 감정 스티커에서만 나온다. */
+:root{
+  --bg:#F2F2F7; --surface:#FFFFFF; --ink:#1E1C2B; --muted:#6D6A80; --line:#DEDCE8; --accent:#4A3FD1; --accent-ink:#FFFFFF;
+  --sticker-ink:#1E1C2B; --danger:#C62F4B;
+  --display:'Gowun Batang','Noto Serif KR',serif; --body:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14131C; --surface:#201F2C; --ink:#F0EFF8; --muted:#A09DB5; --line:#35334A; --accent:#9B93FF; --accent-ink:#14131C; --danger:#FF7B93; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14131C; --surface:#201F2C; --ink:#F0EFF8; --muted:#A09DB5; --line:#35334A; --accent:#9B93FF; --accent-ink:#14131C; --danger:#FF7B93; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:0 96px}
+.app{max-width:480px;margin-inline:auto}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-block:20px 12px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+h1{font-family:var(--display);font-size:28px;margin:0;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+.logo{display:inline-flex;gap:3px}.logo i{width:9px;height:9px;border-radius:50%;display:block}
+.sub{color:var(--muted);font-size:13px}
+h2{font-family:var(--display);font-size:20px;margin:0 0 4px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.view[hidden]{display:none}
+
+/* 기록 카드: 감정색이 카드 전체를 물들인다 */
+.card{--e:#999;display:flex;gap:14px;width:100%;text-align:left;padding:14px;border-radius:18px;background:color-mix(in srgb,var(--e) 20%,var(--surface));border:1px solid color-mix(in srgb,var(--e) 45%,var(--surface))}
+.card .face{flex:none;width:54px;height:54px}
+.card .meta{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
+.card .t{font-family:var(--display);font-weight:700;font-size:17px;line-height:1.3;overflow-wrap:anywhere}
+.card .d{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.card .n{font-size:14px;overflow-wrap:anywhere;margin-top:4px}
+.chip{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);margin-left:6px;vertical-align:2px}
+.monthhead{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.08em;padding-top:6px}
+.empty{padding:40px 16px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:18px}
+
+/* 하단 탭바 */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px));z-index:10}
+nav.tabs .in{max-width:480px;margin-inline:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+nav.tabs button{padding:8px 4px;border-radius:12px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:500}
+nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button[aria-selected="true"]{color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
+
+/* 폼 */
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);font-weight:500}
+input[type=text],input[type=date]{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;width:100%;min-width:0}
+.scan{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+.scan .row{display:flex;gap:12px;align-items:center}
+.thumb{width:64px;height:84px;border-radius:8px;background:var(--bg);border:1px dashed var(--line);object-fit:cover;flex:none;display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center}
+.btn{padding:12px 16px;border-radius:12px;font-weight:600;background:var(--accent);color:var(--accent-ink);text-align:center}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn.danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
+.status{font-size:13px;color:var(--muted)}
+.cats{display:flex;flex-wrap:wrap;gap:8px}
+.cats button{padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:var(--surface);font-size:14px}
+.cats button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.stickers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sticker{--e:#999;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:16px;border:2px solid transparent;background:var(--surface);font-size:13px}
+.sticker svg{width:46px;height:46px}
+.sticker[aria-pressed="true"]{border-color:var(--e);background:color-mix(in srgb,var(--e) 22%,var(--surface));font-weight:600}
+.count{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right}
+
+/* 회상 */
+.capsule{--e:#999;padding:22px 18px;border-radius:22px;background:color-mix(in srgb,var(--e) 24%,var(--surface));border:1px solid color-mix(in srgb,var(--e) 50%,var(--surface));display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.capsule .face{width:72px;height:72px}
+.capsule q{font-family:var(--display);font-size:22px;line-height:1.4;quotes:none;overflow-wrap:anywhere}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.mrow{display:grid;grid-template-columns:48px 1fr 28px;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.bar{display:flex;height:16px;border-radius:99px;overflow:hidden;background:var(--bg)}
+.bar span{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+
+/* 상세 시트 */
+.sheet{position:fixed;inset:0;z-index:20;background:color-mix(in srgb,#000 55%,transparent);display:flex;align-items:flex-end;justify-content:center}
+.sheet .body{width:100%;max-width:480px;max-height:90%;overflow-y:auto;background:var(--bg);border-radius:24px 24px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.ticket{--e:#999;border-radius:20px;background:color-mix(in srgb,var(--e) 24%,var(--surface));border:1px solid color-mix(in srgb,var(--e) 50%,var(--surface));padding:18px;display:flex;flex-direction:column;gap:8px}
+.ticket .face{width:64px;height:64px}
+.ticket h3{font-family:var(--display);font-size:24px;margin:0;line-height:1.3;overflow-wrap:anywhere}
+.ticket img{width:100%;max-height:260px;object-fit:cover;border-radius:12px}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:14px;z-index:30}
+@media (prefers-reduced-motion:no-preference){.card,.capsule{transition:transform .15s}.card:active{transform:scale(.985)}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <h1><span class="logo" id="logo"></span>컬러로그</h1>
+    <span class="sub" id="sub"></span>
+  </header>
+
+  <main>
+    <section class="view stack" id="v-list" aria-label="기록"></section>
+    <section class="view stack" id="v-new" aria-label="새 기록" hidden></section>
+    <section class="view stack" id="v-recall" aria-label="회상" hidden></section>
+  </main>
+</div>
+
+<nav class="tabs" aria-label="메뉴"><div class="in" role="tablist">
+  <button role="tab" data-tab="list" aria-selected="true"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>기록</button>
+  <button role="tab" data-tab="new" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>새 기록</button>
+  <button role="tab" data-tab="recall" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v4h4M12 8v4l3 2"/></svg>회상</button>
+</div></nav>
+<div id="overlay"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+var EMO=[
+ {id:'thrill',name:'설렘',c:'#FF7AA8',eyes:'dots',mouth:'<path d="M13 24Q20 34 27 24Z" fill="#1E1C2B"/>'},
+ {id:'happy',name:'행복',c:'#FFC83D',eyes:'arcs',mouth:'<path d="M13 24Q20 31 27 24" />'},
+ {id:'moved',name:'감동',c:'#FF8A4C',eyes:'dots',mouth:'<path d="M15 26Q20 30 25 26"/><path d="M12 22q-2 3 0 4q2-1 0-4z" fill="#6FB6FF" stroke="none"/>'},
+ {id:'calm',name:'평온',c:'#5FC9B0',eyes:'lines',mouth:'<path d="M15 26Q20 29 25 26"/>'},
+ {id:'regret',name:'아쉬움',c:'#9B8CF2',eyes:'dots',mouth:'<path d="M14 28Q20 23 26 28"/>'},
+ {id:'sad',name:'슬픔',c:'#5C9DF2',eyes:'dots',mouth:'<path d="M14 29Q20 23 26 29"/><path d="M26 21q-2 3 0 4q2-1 0-4z" fill="#BFE0FF" stroke="none"/>'}
+];
+var CATS=['영화','공연','전시','콘서트','뮤지컬','기타'];
+var KEY='colorlog.v1';
+function emo(id){return EMO.filter(function(e){return e.id===id})[0]||EMO[1]}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
+function face(id){
+  var e=emo(id),eyes='';
+  if(e.eyes==='dots')eyes='<circle cx="14" cy="17" r="2" fill="#1E1C2B" stroke="none"/><circle cx="26" cy="17" r="2" fill="#1E1C2B" stroke="none"/>';
+  if(e.eyes==='arcs')eyes='<path d="M11 18Q14 13 17 18M23 18Q26 13 29 18"/>';
+  if(e.eyes==='lines')eyes='<path d="M11 17h6M23 17h6"/>';
+  return '<svg class="face" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="'+e.c+'"/><g fill="none" stroke="#1E1C2B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+eyes+e.mouth+'</g></svg>';
+}
+var SEED=[
+ {id:'s1',ex:1,title:'센과 치히로의 행방불명',cat:'영화',date:'2026-09-27',place:'메가박스 대구신세계',emo:'moved',note:'엔딩 크레딧에서 한참 못 일어났다.'},
+ {id:'s2',ex:1,title:'뮤지컬 위키드',cat:'뮤지컬',date:'2026-09-06',place:'계명아트센터',emo:'thrill',note:'Defying Gravity에서 소름.'},
+ {id:'s3',ex:1,title:'빛의 시간 전시',cat:'전시',date:'2026-08-15',place:'대구미술관',emo:'calm',note:'아무 생각 없이 걸었던 한 시간.'},
+ {id:'s4',ex:1,title:'학교 축제 밴드 공연',cat:'공연',date:'2026-07-04',place:'우리 학교 대강당',emo:'happy',note:'친구들 무대가 제일 멋졌다.'},
+ {id:'s5',ex:1,title:'비 오는 날의 영화',cat:'영화',date:'2026-06-13',place:'CGV 대구한일',emo:'regret',note:'기대가 너무 컸나 보다.'}
+];
+var items=[];
+function load(){try{var r=localStorage.getItem(KEY);if(r){items=JSON.parse(r);return}}catch(e){}items=SEED.slice()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch(e){toast('저장 공간이 부족해요. 사진 없이 저장해 보세요.')}}
+load();
+
+var tab='list',draft=null,shuffle=0;
+function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function newDraft(){draft={title:'',cat:'영화',date:today(),place:'',emo:'happy',note:'',img:''}}
+newDraft();
+function sorted(){return items.slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0})}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){t.hidden=true},2200)}
+
+document.getElementById('logo').innerHTML=EMO.map(function(e){return '<i style="background:'+e.c+'"></i>'}).join('');
+
+function cardHtml(it){
+  var e=emo(it.emo);
+  return '<button class="card" style="--e:'+e.c+'" data-open="'+esc(it.id)+'">'+face(it.emo)+
+   '<span class="meta"><span class="t">'+esc(it.title)+(it.ex?'<span class="chip">예시</span>':'')+'</span>'+
+   '<span class="d">'+esc(it.date.replace(/-/g,'.'))+' · '+esc(it.cat)+(it.place?' · '+esc(it.place):'')+'</span>'+
+   (it.note?'<span class="n">'+esc(it.note)+'</span>':'')+'</span></button>';
+}
+function renderList(){
+  var v=document.getElementById('v-list'),s=sorted(),h='',last='';
+  document.getElementById('sub').textContent='기록 '+items.length+'개';
+  if(!s.length){v.innerHTML='<div class="empty">아직 기록이 없어요.<br>아래 \'새 기록\'에서 티켓 한 장을 찍어 보세요.</div>';return}
+  s.forEach(function(it){var m=it.date.slice(0,7).replace('-','.');if(m!==last){h+='<div class="monthhead">'+m+'</div>';last=m}h+=cardHtml(it)});
+  v.innerHTML=h;
+}
+function renderNew(){
+  var d=draft,v=document.getElementById('v-new');
+  v.innerHTML=
+  '<div><h2>새 기록</h2><div class="sub">티켓을 찍으면 날짜와 장소를 채워 드려요. 직접 써도 돼요.</div></div>'+
+  '<div class="scan"><div class="row">'+(d.img?'<img class="thumb" src="'+d.img+'" alt="티켓 사진">':'<div class="thumb">티켓<br>사진</div>')+
+   '<div class="stack" style="gap:8px;flex:1;min-width:0"><label class="btn" for="f-file" style="cursor:pointer">티켓 스캔하기</label>'+
+   '<input id="f-file" type="file" accept="image/*" hidden><div class="status" id="scanstatus" aria-live="polite">사진을 고르면 글자를 읽어요.</div></div></div></div>'+
+  '<label class="f" for="f-title">제목<input type="text" id="f-title" value="'+esc(d.title)+'" placeholder="예) 어바웃 타임"></label>'+
+  '<div class="stack" style="gap:8px"><span class="sub">종류</span><div class="cats">'+CATS.map(function(c){return '<button type="button" data-cat="'+c+'" aria-pressed="'+(d.cat===c)+'">'+c+'</button>'}).join('')+'</div></div>'+
+  '<label class="f" for="f-date">날짜<input type="date" id="f-date" value="'+esc(d.date)+'"></label>'+
+  '<label class="f" for="f-place">장소<input type="text" id="f-place" value="'+esc(d.place)+'" placeholder="예) 롯데시네마 동성로"></label>'+
+  '<div class="stack" style="gap:8px"><span class="sub">오늘의 감정</span><div class="stickers">'+EMO.map(function(e){return '<button type="button" class="sticker" style="--e:'+e.c+'" data-emo="'+e.id+'" aria-pressed="'+(d.emo===e.id)+'">'+face(e.id)+e.name+'</button>'}).join('')+'</div></div>'+
+  '<label class="f" for="f-note">한 줄 평<input type="text" id="f-note" maxlength="40" value="'+esc(d.note)+'" placeholder="그날의 기분을 한 줄로"><span class="count" id="cnt">'+d.note.length+'/40</span></label>'+
+  '<button class="btn" id="save" type="button">기록 남기기</button>';
+}
+function monthsBack(n){var out=[],d=new Date();d.setDate(1);for(var i=0;i<n;i++){out.push(d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2));d.setMonth(d.getMonth()-1)}return out}
+function renderRecall(){
+  var v=document.getElementById('v-recall'),h='';
+  if(!items.length){v.innerHTML='<div class="empty">기록이 쌓이면 여기서 다시 꺼내볼 수 있어요.</div>';return}
+  var s=sorted(),pick=s[(shuffle*7+Math.floor(s.length/2))%s.length];
+  if(shuffle===0)pick=s[Math.floor(s.length/2)];
+  var e=emo(pick.emo);
+  h+='<div><h2>타임캡슐</h2><div class="sub">그때의 나를 다시 만나요.</div></div>'+
+   '<div class="capsule" style="--e:'+e.c+'">'+face(pick.emo)+'<span class="d" style="font-family:var(--mono);font-size:12px;color:var(--muted)">'+esc(pick.date.replace(/-/g,'.'))+' · '+esc(pick.cat)+(pick.place?' · '+esc(pick.place):'')+'</span>'+
+   '<div class="t" style="font-family:var(--display);font-weight:700;font-size:18px">'+esc(pick.title)+'</div>'+(pick.note?'<q>'+esc(pick.note)+'</q>':'')+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" data-open="'+esc(pick.id)+'">자세히</button><button class="btn" id="shuf">다른 기록 꺼내기</button></div></div>';
+  var ms=monthsBack(6).reverse();
+  h+='<div class="panel"><div><h2 style="font-size:17px">감정 흐름</h2><div class="sub">최근 6개월 동안 쌓인 감정의 색이에요.</div></div>';
+  ms.forEach(function(m){
+    var list=items.filter(function(i){return i.date.slice(0,7)===m}),tot=list.length;
+    var segs=EMO.map(function(x){var c=list.filter(function(i){return i.emo===x.id}).length;return c?'<span title="'+x.name+' '+c+'" style="width:'+(c/tot*100)+'%;background:'+x.c+'"></span>':''}).join('');
+    h+='<div class="mrow"><span>'+m.slice(2).replace('-','.')+'</span><div class="bar" role="img" aria-label="'+m+' 기록 '+tot+'개">'+segs+'</div><span style="text-align:right">'+tot+'</span></div>';
+  });
+  h+='<div class="legend">'+EMO.map(function(x){return '<span><i style="background:'+x.c+'"></i>'+x.name+'</span>'}).join('')+'</div></div>';
+  var cnt=EMO.map(function(x){return{e:x,n:items.filter(function(i){return i.emo===x.id}).length}}).sort(function(a,b){return b.n-a.n});
+  var cc={};items.forEach(function(i){cc[i.cat]=(cc[i.cat]||0)+1});
+  var topc=Object.keys(cc).sort(function(a,b){return cc[b]-cc[a]})[0];
+  h+='<div class="panel"><h2 style="font-size:17px">나의 취향</h2><div>가장 자주 느낀 감정은 <b>'+cnt[0].e.name+'</b>('+cnt[0].n+'번), 가장 많이 기록한 문화생활은 <b>'+esc(topc)+'</b>('+cc[topc]+'번)이에요.</div></div>';
+  var ex=items.filter(function(i){return i.ex}).length;
+  if(ex)h+='<button class="btn danger" id="clrex">예시 기록 '+ex+'개 지우기</button>';
+  v.innerHTML=h;
+}
+function render(){
+  ['list','new','recall'].forEach(function(t){document.getElementById('v-'+t).hidden=(t!==tab)});
+  document.querySelectorAll('nav.tabs button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.tab===tab)});
+  if(tab==='list')renderList();else if(tab==='new'){renderNew();document.getElementById('sub').textContent=''}else renderRecall();
+  if(tab!=='list')document.getElementById('sub').textContent=tab==='recall'?'프라이빗 타임캡슐':'';
+  window.scrollTo(0,0);
+}
+
+function openSheet(id){
+  var it=items.filter(function(i){return i.id===id})[0];if(!it)return;
+  var e=emo(it.emo);
+  document.getElementById('overlay').innerHTML='<div class="sheet" id="sheet"><div class="body" role="dialog" aria-label="기록 상세"><div class="ticket" style="--e:'+e.c+'">'+face(it.emo)+
+   '<div class="d" style="font-family:var(--mono);font-size:12px;color:var(--muted)">'+esc(it.date.replace(/-/g,'.'))+' · '+esc(it.cat)+'</div><h3>'+esc(it.title)+'</h3>'+
+   (it.place?'<div>'+esc(it.place)+'</div>':'')+(it.img?'<img src="'+it.img+'" alt="티켓 사진">':'')+
+   (it.note?'<div style="font-family:var(--display);font-size:18px">“'+esc(it.note)+'”</div>':'')+'<div class="sub">'+e.name+'을 느낀 날</div></div>'+
+   '<div style="display:flex;gap:8px"><button class="btn ghost" id="close" style="flex:1">닫기</button><button class="btn danger" id="del" style="flex:1" data-id="'+esc(id)+'">삭제</button></div></div></div>';
+}
+function closeSheet(){document.getElementById('overlay').innerHTML=''}
+
+// 티켓 OCR: 글자 인식 엔진을 처음 쓸 때만 불러온다. 실패하면 직접 입력으로 안내한다.
+function loadTess(){return new Promise(function(res,rej){
+  if(window.Tesseract)return res(window.Tesseract);
+  var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js';
+  s.onload=function(){window.Tesseract?res(window.Tesseract):rej()};s.onerror=rej;document.head.appendChild(s)})}
+function parseTicket(text){
+  var out={},m=text.match(/(20\d{2})\s*[.\-\/년]\s*(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})/);
+  if(m)out.date=m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2);
+  var lines=text.split(/\n/).map(function(l){return l.trim()}).filter(function(l){return l.length>1});
+  var pl=lines.filter(function(l){return /극장|CGV|메가박스|롯데시네마|아트센터|미술관|박물관|홀|씨어터|공연장|체육관|센터/.test(l)})[0];
+  if(pl)out.place=pl.replace(/[^\w가-힣\s]/g,' ').replace(/\s+/g,' ').trim();
+  var tl=lines.filter(function(l){return l!==pl&&!/\d{4}\s*[.\-\/년]/.test(l)&&/[가-힣A-Za-z]{2,}/.test(l)&&l.length<40})[0];
+  if(tl)out.title=tl.replace(/[^\w가-힣\s:·'!?&-]/g,'').trim();
+  return out;
+}
+function shrink(file){return new Promise(function(res,rej){
+  var r=new FileReader();r.onerror=rej;r.onload=function(){var im=new Image();im.onerror=rej;im.onload=function(){
+    var k=Math.min(1,640/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);res({url:c.toDataURL('image/jpeg',.7),canvas:c})};im.src=r.result};r.readAsDataURL(file)})}
+function scan(file){
+  var st=document.getElementById('scanstatus');
+  st.textContent='사진을 불러오는 중…';
+  shrink(file).then(function(p){
+    draft.img=p.url;syncDraft();renderNew();
+    var st2=document.getElementById('scanstatus');st2.textContent='글자를 읽는 중… (처음에는 오래 걸릴 수 있어요)';
+    var t=new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'))},25000)});
+    return Promise.race([loadTess().then(function(T){return T.recognize(p.canvas,'kor+eng')}),t]);
+  }).then(function(r){
+    var o=parseTicket(r.data.text||''),n=0;
+    ['title','place','date'].forEach(function(k){if(o[k]){draft[k]=o[k];n++}});
+    renderNew();
+    document.getElementById('scanstatus').textContent=n?'읽은 내용을 채웠어요. 맞는지 확인해 주세요.':'읽을 수 있는 글자를 찾지 못했어요. 직접 입력해 주세요.';
+  }).catch(function(){
+    renderNew();
+    document.getElementById('scanstatus').textContent='이 화면에서는 자동 인식을 쓸 수 없어요. 사진은 저장했으니 직접 입력해 주세요.';
+  });
+}
+function syncDraft(){
+  var g=function(i){var x=document.getElementById(i);return x?x.value:null};
+  if(g('f-title')!==null){draft.title=g('f-title');draft.date=g('f-date');draft.place=g('f-place');draft.note=g('f-note')}
+}
+
+document.addEventListener('click',function(ev){
+  var t=ev.target.closest('button');if(!t)return;
+  if(t.dataset.tab){tab=t.dataset.tab;if(tab==='new')syncDraft();render();return}
+  if(t.dataset.open){openSheet(t.dataset.open);return}
+  if(t.id==='close'){closeSheet();return}
+  if(t.id==='del'){
+    if(t.dataset.arm){items=items.filter(function(i){return i.id!==t.dataset.id});save();closeSheet();render();toast('기록을 삭제했어요');return}
+    t.dataset.arm='1';t.textContent='한 번 더 누르면 삭제';return}
+  if(t.dataset.cat){syncDraft();draft.cat=t.dataset.cat;renderNew();return}
+  if(t.dataset.emo){syncDraft();draft.emo=t.dataset.emo;renderNew();return}
+  if(t.id==='shuf'){shuffle++;renderRecall();return}
+  if(t.id==='clrex'){items=items.filter(function(i){return !i.ex});save();render();toast('예시 기록을 지웠어요');return}
+  if(t.id==='save'){
+    syncDraft();
+    if(!draft.title.trim()){toast('제목을 입력해 주세요');document.getElementById('f-title').focus();return}
+    items.push({id:'u'+Date.now(),title:draft.title.trim(),cat:draft.cat,date:draft.date||today(),place:draft.place.trim(),emo:draft.emo,note:draft.note.trim(),img:draft.img});
+    save();newDraft();tab='list';render();toast('타임캡슐에 담았어요');
+  }
+});
+document.addEventListener('click',function(ev){if(ev.target.id==='sheet')closeSheet()});
+document.addEventListener('input',function(ev){if(ev.target.id==='f-note'){document.getElementById('cnt').textContent=ev.target.value.length+'/40'}});
+document.addEventListener('change',function(ev){if(ev.target.id==='f-file'&&ev.target.files[0]){syncDraft();scan(ev.target.files[0])}});
+render();
+</script>
+
+</body></html>
